@@ -1,0 +1,29 @@
+# Netlify builds on push, but it only runs `vite build` — nothing there fails a
+# pull request. This does: typecheck, lint, and the suite over the pure layer.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - run: npm ci
+
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm run test
+
+      # Catches what the three above cannot: a Vite-only failure, such as an
+      # asset import that resolves in tsc but not in the bundler.
+      - run: npm run build

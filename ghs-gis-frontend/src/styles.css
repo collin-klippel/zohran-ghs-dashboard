@@ -1,0 +1,1482 @@
+/*
+ * Tokens follow the data-viz reference palette: surfaces, ink, and hairlines
+ * are defined once per mode and everything else is written against the roles.
+ * Dark values are declared under both the media query (OS setting) and the
+ * data-theme scope (explicit toggle) so the toggle wins in both directions.
+ */
+:root {
+  color-scheme: light;
+
+  --page: #f9f9f7;
+  --surface: #fcfcfb;
+  --surface-sunken: #f2f1ed;
+  --surface-hover: #eeede8;
+
+  --text-primary: #0b0b0b;
+  --text-secondary: #52514e;
+  --text-muted: #898781;
+
+  --hairline: #e1e0d9;
+  --baseline: #c3c2b7;
+  --border: rgba(11, 11, 11, 0.1);
+
+  /* Green, for Green Healthy Schools — the same hue the map ramp runs on, so
+     the chrome and the data encoding read as one system. */
+  --accent: #006500;
+  --accent-soft: #cfe8cd;
+  --good: #0ca30c;
+  --warning: #a35a00;
+  --critical: #d03b3b;
+
+  --radius: 6px;
+  --shadow: 0 1px 2px rgba(11, 11, 11, 0.06), 0 4px 12px rgba(11, 11, 11, 0.06);
+  --font: system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+
+    --page: #0d0d0d;
+    --surface: #1a1a19;
+    --surface-sunken: #141413;
+    --surface-hover: #262624;
+
+    --text-primary: #ffffff;
+    --text-secondary: #c3c2b7;
+    --text-muted: #898781;
+
+    --hairline: #2c2c2a;
+    --baseline: #383835;
+    --border: rgba(255, 255, 255, 0.1);
+
+    --accent: #42a53c;
+    --accent-soft: #006500;
+    /* The light steps are unreadable on the dark surface — #d03b3b clears only
+       about 3:1 against #1a1a19. Lifted here and in the toggle scope below. */
+    --good: #4ec94e;
+    --warning: #e59b3d;
+    --critical: #ff6b6b;
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 4px 12px rgba(0, 0, 0, 0.3);
+  }
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --page: #0d0d0d;
+  --surface: #1a1a19;
+  --surface-sunken: #141413;
+  --surface-hover: #262624;
+
+  --text-primary: #ffffff;
+  --text-secondary: #c3c2b7;
+  --text-muted: #898781;
+
+  --hairline: #2c2c2a;
+  --baseline: #383835;
+  --border: rgba(255, 255, 255, 0.1);
+
+  --accent: #42a53c;
+  --accent-soft: #006500;
+  --good: #4ec94e;
+  --warning: #e59b3d;
+  --critical: #ff6b6b;
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  font-family: var(--font);
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--text-primary);
+  background: var(--page);
+  -webkit-font-smoothing: antialiased;
+}
+
+button,
+input,
+select {
+  font: inherit;
+  color: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* ---------------------------------------------------------------- layout -- */
+
+.app {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  height: 100%;
+}
+
+.app__body {
+  display: grid;
+  grid-template-columns: 288px minmax(0, 1fr) 360px;
+  min-height: 0;
+  gap: 1px;
+  background: var(--hairline);
+}
+
+.app__center {
+  position: relative;
+  min-width: 0;
+  background: var(--surface);
+}
+
+/* ---------------------------------------------------------------- header -- */
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 10px 16px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--hairline);
+}
+
+.header__title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+}
+
+.header__subtitle {
+  margin: 0;
+  font-size: 11px;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.header__spacer {
+  flex: 1;
+}
+
+.header__metric {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.header__metric label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+/* ---------------------------------------------------------------- panels -- */
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  background: var(--surface);
+  overflow-y: auto;
+}
+
+.panel__header {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--hairline);
+}
+
+.panel__title {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-secondary);
+}
+
+.panel__body {
+  padding: 12px 14px 20px;
+}
+
+/* --------------------------------------------------------------- controls -- */
+
+.control {
+  display: block;
+  width: 100%;
+  padding: 6px 8px;
+  background: var(--surface-sunken);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.control:hover {
+  background: var(--surface-hover);
+}
+
+select.control {
+  cursor: pointer;
+  max-width: 340px;
+}
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  background: var(--surface-sunken);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.button:hover {
+  background: var(--surface-hover);
+}
+
+.button--ghost {
+  background: transparent;
+  border-color: transparent;
+  color: var(--text-secondary);
+}
+
+.button--ghost:hover {
+  background: var(--surface-hover);
+  color: var(--text-primary);
+}
+
+.button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+/* A button that reads as a link — used wherever navigation is an action rather
+   than an href, which is everywhere in an app with no router. */
+.link {
+  padding: 0;
+  background: none;
+  border: 0;
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+
+.link:hover {
+  color: var(--text-primary);
+}
+
+.badge {
+  display: inline-block;
+  min-width: 18px;
+  padding: 0 5px;
+  font-size: 11px;
+  font-weight: 600;
+  text-align: center;
+  color: var(--surface);
+  background: var(--accent);
+  border-radius: 9px;
+}
+
+/* ---------------------------------------------------------------- filters -- */
+
+.filter-group {
+  padding: 10px 0;
+  border-bottom: 1px solid var(--hairline);
+}
+
+.filter-group:last-child {
+  border-bottom: none;
+}
+
+.filter-group__summary {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 0;
+  font-weight: 500;
+  cursor: pointer;
+  list-style: none;
+}
+
+.filter-group__summary::-webkit-details-marker {
+  display: none;
+}
+
+.filter-group__summary::before {
+  content: "›";
+  display: inline-block;
+  width: 10px;
+  color: var(--text-muted);
+  transition: transform 0.12s ease;
+}
+
+.filter-group[open] > .filter-group__summary::before {
+  transform: rotate(90deg);
+}
+
+.filter-group__count {
+  margin-left: auto;
+  font-size: 11px;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.filter-group__options {
+  max-height: 210px;
+  overflow-y: auto;
+  margin-top: 6px;
+  padding-left: 16px;
+}
+
+.checkbox {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  padding: 3px 0;
+  cursor: pointer;
+}
+
+.checkbox input {
+  flex: none;
+  margin: 0;
+  accent-color: var(--accent);
+  transform: translateY(1px);
+}
+
+.checkbox__label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.checkbox__count {
+  flex: none;
+  font-size: 11px;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.range {
+  padding: 10px 0;
+  border-bottom: 1px solid var(--hairline);
+}
+
+.range__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.range__label {
+  font-weight: 500;
+}
+
+.range__value {
+  font-size: 11px;
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.range__inputs {
+  display: grid;
+  gap: 2px;
+  margin-top: 8px;
+}
+
+.range__inputs input[type="range"] {
+  width: 100%;
+  height: 16px;
+  margin: 0;
+  accent-color: var(--accent);
+}
+
+.range__missing {
+  margin-top: 4px;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+/* ------------------------------------------------------------ ranked list -- */
+
+.ranked {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.ranked th {
+  position: sticky;
+  top: 0;
+  padding: 6px 14px;
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  text-align: left;
+  color: var(--text-muted);
+  background: var(--surface);
+  border-bottom: 1px solid var(--hairline);
+}
+
+.ranked th:last-child,
+.ranked td:last-child {
+  text-align: right;
+}
+
+.ranked td {
+  padding: 7px 14px;
+  border-bottom: 1px solid var(--hairline);
+  vertical-align: baseline;
+}
+
+.ranked tr {
+  cursor: pointer;
+}
+
+.ranked tr:hover td {
+  background: var(--surface-hover);
+}
+
+.ranked tr[aria-selected="true"] td {
+  background: var(--accent-soft);
+}
+
+.ranked__rank {
+  width: 1%;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.ranked__name {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+}
+
+.ranked__swatch {
+  flex: none;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  box-shadow: 0 0 0 1.5px var(--surface);
+  transform: translateY(1px);
+}
+
+.ranked__meta {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.ranked__value {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* ----------------------------------------------------------------- detail -- */
+
+.detail__name {
+  margin: 0 0 2px;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.detail__sub {
+  margin: 0 0 14px;
+  color: var(--text-secondary);
+}
+
+.detail__group {
+  margin-bottom: 6px;
+  border-top: 1px solid var(--hairline);
+}
+
+.detail__group summary {
+  padding: 8px 0;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.detail__rows {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  gap: 3px 12px;
+  padding-bottom: 10px;
+}
+
+.detail__key {
+  color: var(--text-secondary);
+}
+
+.detail__val {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+.detail__val--muted {
+  color: var(--text-muted);
+}
+
+/* Flagged values carry weight and color; the count on the group header is what
+   makes a collapsed group readable — nine clean rows and nine failing ones look
+   identical otherwise. */
+.detail__val--critical {
+  font-weight: 600;
+  color: var(--critical);
+}
+
+.detail__val--concern {
+  font-weight: 600;
+  color: var(--warning);
+}
+
+.detail__count {
+  margin-left: 6px;
+  padding: 1px 6px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  border-radius: 999px;
+  color: var(--surface);
+  background: var(--text-muted);
+}
+
+.detail__count--critical {
+  background: var(--critical);
+}
+
+.detail__count--concern {
+  background: var(--warning);
+}
+
+/* ---------------------------------------------------------------- infotip -- */
+
+.infotip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 13px;
+  height: 13px;
+  margin-left: 5px;
+  padding: 0;
+  vertical-align: 1px;
+  background: transparent;
+  border: 1px solid var(--baseline);
+  border-radius: 50%;
+  color: var(--text-muted);
+  font-size: 9px;
+  font-weight: 700;
+  font-style: italic;
+  line-height: 1;
+  text-transform: none;
+  cursor: help;
+}
+
+.infotip:hover {
+  border-color: var(--text-secondary);
+  color: var(--text-primary);
+}
+
+/* Width is duplicated in InfoTip.tsx, which clamps the bubble to the window. */
+.infotip__bubble {
+  position: fixed;
+  z-index: 60;
+  width: 260px;
+  padding: 8px 10px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  color: var(--text-secondary);
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 0;
+  line-height: 1.5;
+  text-align: left;
+  text-transform: none;
+  /* The bubble must never sit between the pointer and the icon it describes. */
+  pointer-events: none;
+}
+
+/* ------------------------------------------------------------- stat tiles -- */
+
+.stats {
+  display: flex;
+  gap: 1px;
+  background: var(--hairline);
+  border-top: 1px solid var(--hairline);
+}
+
+.stat {
+  flex: 1;
+  min-width: 0;
+  padding: 8px 16px;
+  background: var(--surface);
+}
+
+.stat__label {
+  font-size: 11px;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.stat__value {
+  font-size: 19px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+}
+
+.stat__note {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+/* -------------------------------------------------------------------- map -- */
+
+.map {
+  position: absolute;
+  inset: 0;
+}
+
+.map .maplibregl-popup-content {
+  padding: 7px 10px;
+  font-family: var(--font);
+  font-size: 12px;
+  color: var(--text-primary);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.map .maplibregl-popup-tip {
+  border-top-color: var(--surface);
+  border-bottom-color: var(--surface);
+}
+
+.map .maplibregl-ctrl-group {
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.map .maplibregl-ctrl-group button + button {
+  border-top-color: var(--hairline);
+}
+
+.map-tip__name {
+  font-weight: 600;
+}
+
+.map-tip__value {
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ----------------------------------------------------------------- legend -- */
+
+.legend {
+  position: absolute;
+  left: 12px;
+  bottom: 12px;
+  z-index: 2;
+  max-width: 260px;
+  padding: 10px 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.legend__title {
+  font-weight: 600;
+}
+
+.legend__caption {
+  margin-bottom: 7px;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.legend__row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 1px 0;
+}
+
+.legend__swatch {
+  flex: none;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  box-shadow: 0 0 0 1.5px var(--surface);
+}
+
+/* Area fills get a square key, so a polygon class is never mistaken for a
+   school dot when both legends are on screen. Shape carries that distinction,
+   not opacity — a translucent swatch on the panel is a different composite
+   from the fill over the basemap, and it flattens the ramp. */
+.legend__swatch--area {
+  border-radius: 2px;
+}
+
+.legend__section {
+  margin-top: 10px;
+  padding-top: 9px;
+  border-top: 1px solid var(--hairline);
+}
+
+/* --------------------------------------------------------- layer control -- */
+
+.layers {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 2;
+  max-width: 250px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.layers__summary {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 11px;
+  font-weight: 600;
+  cursor: pointer;
+  list-style: none;
+}
+
+.layers__summary::-webkit-details-marker {
+  display: none;
+}
+
+.layers__summary::before {
+  content: "›";
+  display: inline-block;
+  width: 9px;
+  color: var(--text-muted);
+  transition: transform 0.12s ease;
+}
+
+.layers[open] > .layers__summary::before {
+  transform: rotate(90deg);
+}
+
+.layers__body {
+  padding: 2px 11px 9px;
+}
+
+.layers__group {
+  margin: 0;
+  padding: 7px 0 0;
+  border: none;
+  border-top: 1px solid var(--hairline);
+}
+
+.layers__legend {
+  padding: 0 0 3px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+}
+
+.legend__range {
+  font-size: 11px;
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+/* --------------------------------------------------------- map overlay ui -- */
+
+.map-toolbar {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 2;
+  display: flex;
+  gap: 6px;
+}
+
+.map-toolbar .button {
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+/* ----------------------------------------------------------------- modal -- */
+
+/*
+ * A native <dialog> in the top layer, so no z-index is needed here — it sits
+ * above the map overlays regardless of what they claim.
+ */
+dialog.modal {
+  width: calc(100vw - 32px);
+  max-width: 520px;
+  max-height: 80vh;
+  padding: 0;
+  color: var(--text-primary);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+dialog.modal::backdrop {
+  background: rgba(11, 11, 11, 0.45);
+}
+
+.modal__header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--hairline);
+}
+
+.modal__title {
+  margin: 0;
+  font-size: 15px;
+}
+
+.modal__subtitle {
+  margin: 0;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+/* The dialog's own max-height caps the box; the body is what scrolls inside
+   it, which is what keeps this usable on a phone. */
+.modal__body {
+  padding: 14px 16px;
+  overflow-y: auto;
+}
+
+.modal__lede {
+  margin: 0 0 12px;
+  color: var(--text-secondary);
+}
+
+.modal__list {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: var(--text-secondary);
+}
+
+.modal__list strong {
+  color: var(--text-primary);
+}
+
+.modal__footer {
+  display: flex;
+  justify-content: flex-end;
+  padding: 12px 16px;
+  border-top: 1px solid var(--hairline);
+}
+
+/* ------------------------------------------------------------ status text -- */
+
+.status {
+  display: grid;
+  place-items: center;
+  height: 100%;
+  padding: 32px;
+  text-align: center;
+  color: var(--text-secondary);
+}
+
+.status pre {
+  max-width: 620px;
+  margin-top: 10px;
+  padding: 12px;
+  text-align: left;
+  white-space: pre-wrap;
+  background: var(--surface-sunken);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.empty {
+  padding: 24px 14px;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* --------------------------------------------------------------- combobox -- */
+
+.combobox {
+  position: relative;
+}
+
+.combobox__input {
+  width: 100%;
+  background: var(--surface);
+  color: var(--text-primary);
+  border: 1px solid var(--baseline);
+  border-radius: var(--radius);
+}
+
+.combobox--hero .combobox__input {
+  padding: 13px 15px;
+  font-size: 17px;
+  border-radius: 10px;
+}
+
+.combobox--inline .combobox__input {
+  padding: 5px 9px;
+}
+
+.combobox__list {
+  position: absolute;
+  z-index: 40;
+  top: calc(100% + 4px);
+  right: 0;
+  left: 0;
+  max-height: 340px;
+  margin: 0;
+  padding: 4px;
+  overflow-y: auto;
+  list-style: none;
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.combobox__option {
+  display: grid;
+  gap: 1px;
+  padding: 8px 10px;
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+
+.combobox__option--active {
+  background: var(--surface-hover);
+}
+
+.combobox__name {
+  font-weight: 600;
+}
+
+.combobox__meta {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.combobox__empty {
+  padding: 10px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+/* ----------------------------------------------------------- find screen -- */
+
+.find {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  min-height: 100%;
+}
+
+.find__theme {
+  justify-self: end;
+  margin: 12px 16px;
+}
+
+.find__hero {
+  align-self: center;
+  width: 100%;
+  max-width: 640px;
+  /* Sits a little above centre: the suggestion list drops below the field and
+     needs room that a true vertical centre doesn't leave. */
+  margin: 0 auto;
+  padding: 0 20px 14vh;
+}
+
+.find__title {
+  margin: 0 0 10px;
+  font-size: 34px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+
+.find__lede {
+  margin: 0 0 24px;
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+
+.find__alt {
+  margin: 18px 0 0;
+  font-size: 15px;
+  color: var(--text-secondary);
+}
+
+/* ----------------------------------------------------------- school page -- */
+
+/*
+ * The school page is a document, not the app frame: it scrolls the body and
+ * sets its own measure, so none of the three-pane `.app` rules apply to it.
+ * Type is sized here too — the 13px body copy that suits a dense tool is too
+ * small for a public page, and changing the root would reflow the dashboard.
+ */
+.page {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  min-height: 100%;
+}
+
+.page__bar {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--hairline);
+}
+
+.page__home {
+  font-weight: 600;
+  color: var(--text-primary);
+  text-decoration: none;
+}
+
+.page__bar .combobox {
+  width: min(340px, 45vw);
+  margin-left: auto;
+}
+
+.page__main {
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 26px 20px 48px;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.page__foot {
+  padding: 20px;
+  color: var(--text-secondary);
+  text-align: center;
+  border-top: 1px solid var(--hairline);
+}
+
+.hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 24px;
+  align-items: center;
+  margin-bottom: 28px;
+}
+
+.hero__name {
+  margin: 0 0 4px;
+  font-size: 30px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+}
+
+.hero__where {
+  margin: 0;
+  color: var(--text-secondary);
+}
+
+.hero__level {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.locator {
+  height: 200px;
+  overflow: hidden;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius);
+}
+
+.section {
+  margin-bottom: 32px;
+}
+
+.section__title {
+  margin: 0 0 4px;
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.section__note {
+  margin: 0 0 14px;
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.section--cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 12px;
+  align-items: start;
+}
+
+/* Grid rather than CSS columns: each group is a <details>, and a column layout
+   reflows every sibling when one is opened. */
+.fields--wide {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 0 32px;
+  align-items: start;
+}
+
+/* ------------------------------------------------------------- scorecard -- */
+
+.scorecard {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+  gap: 12px;
+  margin-bottom: 32px;
+}
+
+.card,
+.cta {
+  padding: 14px 16px;
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius);
+}
+
+/* Muted rather than absent: a dropped card would read as "this one is fine". */
+.card--missing {
+  background: var(--surface-sunken);
+}
+
+.card__title {
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+  margin: 0 0 8px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-secondary);
+}
+
+.card__scope {
+  margin-left: auto;
+  font-size: 11px;
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--text-muted);
+}
+
+.card__headline {
+  margin: 0 0 6px;
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+}
+
+.card__headline--missing {
+  font-weight: 400;
+  color: var(--text-muted);
+}
+
+.card__context {
+  margin: 0 0 6px;
+  color: var(--text-secondary);
+}
+
+.card__detail {
+  margin: 0 0 8px;
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.card__caveat {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--text-muted);
+}
+
+/* A flagged card is marked on its edge and named in words above the figure.
+   The tint is deliberately faint — it separates the flagged cards from the
+   clean ones at a glance without competing with the headline for attention. */
+.card--critical {
+  border-left: 3px solid var(--critical);
+  background: var(--surface);
+  background: color-mix(in srgb, var(--critical) 6%, var(--surface));
+}
+
+.card--concern {
+  border-left: 3px solid var(--warning);
+  background: var(--surface);
+  background: color-mix(in srgb, var(--warning) 6%, var(--surface));
+}
+
+.card--ok {
+  border-left: 3px solid var(--good);
+}
+
+.card__verdict {
+  margin: -4px 0 6px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-secondary);
+}
+
+.card__verdict--critical {
+  color: var(--critical);
+}
+
+.card__verdict--concern {
+  color: var(--warning);
+}
+
+.card__verdict--ok {
+  color: var(--good);
+}
+
+.cta__title {
+  margin: 0 0 6px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.cta__lead {
+  margin: 0 0 4px;
+  font-weight: 600;
+}
+
+.cta__muted {
+  margin: 0 0 8px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.cta p:last-child {
+  margin-bottom: 0;
+}
+
+.nearby__list {
+  display: grid;
+  gap: 3px;
+  margin: 0 0 12px;
+  padding: 0;
+  list-style: none;
+  justify-items: start;
+}
+
+/* ------------------------------------------------------------- shortfalls -- */
+
+/* The band that answers "what's wrong here" before the cards qualify it.
+   Severity is carried by a rule and a label rather than a filled panel: a page
+   of red boxes stops being read as measurement. */
+.shortfall {
+  margin: 0 0 24px;
+  padding: 16px 18px;
+  background: var(--surface-sunken);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius);
+}
+
+.shortfall__title {
+  margin: 0 0 12px;
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-secondary);
+}
+
+.shortfall__list {
+  display: grid;
+  gap: 10px;
+  margin: 0 0 12px;
+  padding: 0;
+  list-style: none;
+}
+
+.shortfall__item {
+  padding-left: 12px;
+  border-left: 3px solid var(--baseline);
+}
+
+.shortfall__item--critical {
+  border-left-color: var(--critical);
+}
+
+.shortfall__item--concern {
+  border-left-color: var(--warning);
+}
+
+.shortfall__badge {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-secondary);
+}
+
+.shortfall__item--critical .shortfall__badge {
+  color: var(--critical);
+}
+
+.shortfall__item--concern .shortfall__badge {
+  color: var(--warning);
+}
+
+.shortfall__text {
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.3;
+}
+
+.shortfall__none {
+  margin: 0 0 12px;
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.shortfall__aside {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+.shortfall__aside:empty {
+  display: none;
+}
+
+/* ------------------------------------------------------------- responsive -- */
+
+@media (max-width: 1180px) {
+  .app__body {
+    grid-template-columns: 250px minmax(0, 1fr) 300px;
+  }
+}
+
+@media (max-width: 900px) {
+  .app__body {
+    grid-template-columns: 1fr;
+    grid-auto-rows: minmax(320px, auto);
+    overflow-y: auto;
+  }
+
+  .app {
+    grid-template-rows: auto 1fr auto;
+  }
+
+  .app__center {
+    min-height: 60vh;
+  }
+
+  .panel {
+    max-height: 60vh;
+  }
+
+  .stats {
+    flex-wrap: wrap;
+  }
+
+  .stat {
+    flex-basis: 45%;
+  }
+}
+
+@media (max-width: 720px) {
+  .hero {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .hero__name {
+    font-size: 24px;
+  }
+
+  .find__title {
+    font-size: 26px;
+  }
+
+  .page__main {
+    padding: 20px 14px 40px;
+  }
+
+  /* The search takes the bar's second row rather than squeezing beside the
+     wordmark, which is what forces horizontal scroll at this width. */
+  .page__bar {
+    flex-wrap: wrap;
+  }
+
+  .page__bar .combobox {
+    order: 3;
+    width: 100%;
+    margin-left: 0;
+  }
+}
